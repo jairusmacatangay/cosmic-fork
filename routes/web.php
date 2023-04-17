@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Auth;
 
@@ -18,6 +19,11 @@ Route::get('/', function () {
     return view('auth.login');
 });
 
-Auth::routes();
+Route::controller(UserController::class)->group(function () {
+    Route::get('/login', 'viewLogin');
+    Route::post('/login', 'login');
+});
 
-Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
+Route::get('/home', [App\Http\Controllers\HomeController::class, 'index']);
+
+

@@ -1,22 +1,6 @@
-<!doctype html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+@extends('layouts.html')
 
-    <!-- CSRF Token -->
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-
-    <title>{{ config('app.name', 'Laravel') }}</title>
-
-    <!-- Fonts -->
-    <link rel="dns-prefetch" href="//fonts.gstatic.com">
-    <link href="https://fonts.bunny.net/css?family=Lexend" rel="stylesheet">
-
-    <!-- Scripts -->
-    @vite(['resources/sass/app.scss', 'resources/js/app.js'])
-</head>
-<body>
+@section('content')
     <div class="row vh-100 m-0 p-0">
 
         {{-- Login Column --}}
@@ -30,20 +14,46 @@
 
                 {{-- Body --}}
                 <div class="mx-auto w-50">
-                    <div class="mb-3">
-                        <label for="username" class="form-label fw-bold">Username</label>
-                        <input type="text" class="form-control" id="username" placeholder="Username">
-                    </div>
-        
-                    <div class="mb-3">
-                        <label for="password" class="form-label fw-bold">Password</label>
-                        <input type="password" class="form-control" id="password" placeholder="Password">
-                    </div>
-        
-                    <div class="d-grid mt-5 mb-3">
-                        <button class="btn btn-primary d-grid">LOG IN</button>
-                    </div>
 
+                    <div id="error-alert"></div>
+
+                    {{-- Error Alert Message --}}
+					@if (Session::has('error'))
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <span><strong>Error!</strong> {{ session('error') }}</span>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+					@endif
+
+					{{-- Login Form --}}
+                    <form>
+                        @csrf
+
+                        {{-- Email Input --}}
+                        <div class="mb-3">
+                            <label for="email" class="form-label fw-bold">Email</label>
+                            <input type="text" class="form-control" id="email" 
+                                name="email" placeholder="johndoe@mail.com" value="{{ old('email') }}">
+                            @error('email')
+                                <div class="text-danger">{{ $message }}</div>
+                            @enderror
+                        </div>
+            
+                        {{-- Password Input --}}
+                        <div class="mb-3">
+                            <label for="password" class="form-label fw-bold">Password</label>
+                            <input type="password" class="form-control" 
+                                id="password" name="password" placeholder="Password">
+                            @error('password')
+                                <div class="text-danger">{{ $message }}</div>
+                            @enderror
+                        </div>
+            
+                        <div class="d-grid mt-5 mb-3">
+                            <button type="submit" class="btn btn-primary d-grid" id="btnSubmit">LOG IN</button>
+                        </div>
+                    </form>
+                    
                     <div class="text-center">
                         <a href="#" class="mx-auto">Forgot password?</a>
                     </div>
@@ -73,5 +83,81 @@
         </div>
         
     </div>
-</body>
-</html>
+@endsection
+
+@push('scripts')
+    <script>
+        const btnSubmit = document.getElementById('btnSubmit');
+        
+        btnSubmit.addEventListener('click', submitForm);
+
+        async function submitForm(e) {
+            e.preventDefault();
+            loadSpinner();
+
+            axios.post('/login', {
+                email: document.getElementById('email').value,
+                password: document.getElementById('password').value
+            })
+            .then((response) => {
+                if (response.status === 200) {
+                    window.location.href = '/home';
+                }
+            })
+            .catch((error) => {
+                removeErrorMessages();
+                
+                const errorArr = Object.entries(error.response.data.errors);
+                for (const [key, value] of errorArr) {
+                    if (key === 'general') {
+                        createAlertMessage(value);
+                    } else {
+                        insertValidationMessage(key, value);
+                    }
+                }
+                
+                removeSpinner();
+            });
+        }
+
+        function loadSpinner() {
+            btnSubmit.innerHTML = '';
+            btnSubmit.innerHTML = '<i class="fa-solid fa-spinner fa-spin mt-1 mb-1"></i>';
+            btnSubmit.setAttribute('disabled', '');
+        }
+
+        function removeSpinner() {
+            btnSubmit.innerHTML = '';
+            btnSubmit.innerHTML = 'LOG IN';
+            btnSubmit.removeAttribute('disabled');
+        }
+
+        function createAlertMessage(value) {
+            document.getElementById('error-alert').innerHTML = `
+                <div class="alert alert-danger alert-dismissible fade show" role="alert" id="mainAlert">
+                    <span>${value}</span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>`;
+        }
+
+        function insertValidationMessage(key, value) {
+            const div = document.createElement('div');
+            div.classList.add('text-danger');
+            div.innerText = value;
+            document.getElementById(key).after(div);
+        }
+
+        function removeErrorMessages() {
+            const mainAlert = document.getElementById('mainAlert');
+            const errorMessages = document.getElementsByClassName('text-danger');
+                
+            if (mainAlert) {
+                mainAlert.remove();
+            }
+
+            if (errorMessages.length > 0) {
+                Array.from(errorMessages).forEach(element => element.remove());
+            }
+        }
+    </script>
+@endpush
