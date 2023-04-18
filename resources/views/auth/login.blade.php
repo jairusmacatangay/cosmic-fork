@@ -6,6 +6,7 @@
         {{-- Login Column --}}
         <div class="col-4">
             <div class="d-flex flex-column justify-content-between h-100">
+
                 {{-- Header --}}
                 <div class="mt-5 pt-5 text-center">
                     <h1 class="display-6 fw-bold m-0">Log in</h1>
@@ -15,15 +16,7 @@
                 {{-- Body --}}
                 <div class="mx-auto w-50">
 
-                    <div id="error-alert"></div>
-
-                    {{-- Error Alert Message --}}
-					@if (Session::has('error'))
-                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                            <span><strong>Error!</strong> {{ session('error') }}</span>
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                        </div>
-					@endif
+                    <div id="alertError"></div>
 
 					{{-- Login Form --}}
                     <form>
@@ -32,21 +25,15 @@
                         {{-- Email Input --}}
                         <div class="mb-3">
                             <label for="email" class="form-label fw-bold">Email</label>
-                            <input type="text" class="form-control" id="email" 
-                                name="email" placeholder="johndoe@mail.com" value="{{ old('email') }}">
-                            @error('email')
-                                <div class="text-danger">{{ $message }}</div>
-                            @enderror
+                            <input type="text" class="form-control" id="email" name="email" 
+                                placeholder="johndoe@example.com">
                         </div>
             
                         {{-- Password Input --}}
                         <div class="mb-3">
                             <label for="password" class="form-label fw-bold">Password</label>
-                            <input type="password" class="form-control" 
-                                id="password" name="password" placeholder="Password">
-                            @error('password')
-                                <div class="text-danger">{{ $message }}</div>
-                            @enderror
+                            <input type="password" class="form-control" id="password" name="password" 
+                                placeholder="Password">
                         </div>
             
                         <div class="d-grid mt-5 mb-3">
@@ -86,78 +73,5 @@
 @endsection
 
 @push('scripts')
-    <script>
-        const btnSubmit = document.getElementById('btnSubmit');
-        
-        btnSubmit.addEventListener('click', submitForm);
-
-        async function submitForm(e) {
-            e.preventDefault();
-            loadSpinner();
-
-            axios.post('/login', {
-                email: document.getElementById('email').value,
-                password: document.getElementById('password').value
-            })
-            .then((response) => {
-                if (response.status === 200) {
-                    window.location.href = '/home';
-                }
-            })
-            .catch((error) => {
-                removeErrorMessages();
-                
-                const errorArr = Object.entries(error.response.data.errors);
-                for (const [key, value] of errorArr) {
-                    if (key === 'general') {
-                        createAlertMessage(value);
-                    } else {
-                        insertValidationMessage(key, value);
-                    }
-                }
-                
-                removeSpinner();
-            });
-        }
-
-        function loadSpinner() {
-            btnSubmit.innerHTML = '';
-            btnSubmit.innerHTML = '<i class="fa-solid fa-spinner fa-spin mt-1 mb-1"></i>';
-            btnSubmit.setAttribute('disabled', '');
-        }
-
-        function removeSpinner() {
-            btnSubmit.innerHTML = '';
-            btnSubmit.innerHTML = 'LOG IN';
-            btnSubmit.removeAttribute('disabled');
-        }
-
-        function createAlertMessage(value) {
-            document.getElementById('error-alert').innerHTML = `
-                <div class="alert alert-danger alert-dismissible fade show" role="alert" id="mainAlert">
-                    <span>${value}</span>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>`;
-        }
-
-        function insertValidationMessage(key, value) {
-            const div = document.createElement('div');
-            div.classList.add('text-danger');
-            div.innerText = value;
-            document.getElementById(key).after(div);
-        }
-
-        function removeErrorMessages() {
-            const mainAlert = document.getElementById('mainAlert');
-            const errorMessages = document.getElementsByClassName('text-danger');
-                
-            if (mainAlert) {
-                mainAlert.remove();
-            }
-
-            if (errorMessages.length > 0) {
-                Array.from(errorMessages).forEach(element => element.remove());
-            }
-        }
-    </script>
+    @vite('resources/js/auth/login.js')
 @endpush
