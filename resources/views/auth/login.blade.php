@@ -10,7 +10,7 @@
                 {{-- Header --}}
                 <div class="mt-5 pt-5 text-center">
                     <h1 class="display-6 fw-bold m-0">Log in</h1>
-                    <span>or <a href="#">create account</a></span>
+                    <span>or <a href="/register">create account</a></span>
                 </div>
 
                 {{-- Body --}}
@@ -25,7 +25,7 @@
                         {{-- Email Input --}}
                         <div class="mb-3">
                             <label for="email" class="form-label fw-bold">Email</label>
-                            <input type="text" class="form-control" id="email" name="email" 
+                            <input type="email" class="form-control" id="email" name="email" 
                                 placeholder="johndoe@example.com">
                         </div>
             

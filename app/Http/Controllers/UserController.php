@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\User as ModelUser;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Validator;
 
 class UserController extends Controller
@@ -13,7 +14,7 @@ class UserController extends Controller
         return view('auth.login');
     }
 
-    public function login(Request $request) 
+    public function login(Request $request)
     {
         $request->validate([
             'email' => 'required|email',
@@ -23,7 +24,7 @@ class UserController extends Controller
         $user = ModelUser::where([
             ['email', '=', request()->email],
             ['password', '=', request()->password]
-            ])->first();
+        ])->first();
 
         if (!$user) {
             return response()->json([
@@ -40,5 +41,26 @@ class UserController extends Controller
         // session()->regenerate();
 
         return response(null, 200);
+    }
+
+    public function viewRegister()
+    {
+        return view('auth.register');
+    }
+
+    public function register(Request $request)
+    {
+        $request->validate([
+            'firstName' => 'required',
+            'lastName' => 'required',
+            'email' => 'required|email|unique:users,email',
+            'mobileNumber' => 'required|numeric|digits:10',
+            'birthday' => 'required|before:' . Carbon::now()->subYears(18)->format('Y-m-d'),
+            'password' => ['required', 'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/'],
+            'confirmPassword' => 'required|same:password',
+        ], [
+            'birthday.before' => 'You must be at least 18 years old.',
+            'password.regex' => 'Your password must be at least 8 characters long, contain at least one number and symbol and have a mixture of uppercase and lowercase letters.'
+        ]);
     }
 }

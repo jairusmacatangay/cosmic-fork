@@ -22,6 +22,8 @@ Route::get('/', function () {
 Route::controller(UserController::class)->group(function () {
     Route::get('/login', 'viewLogin');
     Route::post('/login', 'login');
+    Route::get('/register', 'viewRegister');
+    Route::post('/register', 'register');
 });
 
 Route::get('/home', [App\Http\Controllers\HomeController::class, 'index']);
